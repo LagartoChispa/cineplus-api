@@ -1,16 +1,9 @@
 # =========================
-# Builder stage
+# Builder
 # =========================
-FROM node:20-alpine AS builder
+FROM node:20-bullseye AS builder
 
 WORKDIR /app
-
-# Dependencias necesarias para sharp
-RUN apk add --no-cache \
-  libc6-compat \
-  vips-dev \
-  build-base \
-  python3
 
 COPY package*.json ./
 RUN npm ci
@@ -19,23 +12,17 @@ COPY . .
 RUN npm run build
 
 # =========================
-# Production stage
+# Production
 # =========================
-FROM node:20-alpine
+FROM node:20-bullseye
 
 WORKDIR /app
 
-# SOLO dependencias runtime para sharp
-RUN apk add --no-cache \
-  libc6-compat \
-  vips
+ENV NODE_ENV=production
 
-# Copiar lo ya compilado
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY package*.json ./
-
-ENV NODE_ENV=production
 
 EXPOSE 10000
 
